@@ -33,6 +33,19 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;p
 .stock{width:70px;padding:6px}.agot{color:#a12626;font-weight:600}
 .vacio{color:var(--gris);text-align:center;padding:30px}
 .oculto{display:none}
+.prod{display:grid;grid-template-columns:90px 1fr;gap:14px;border-bottom:1px solid var(--borde);padding:14px 0}
+.prod img,.thumb{width:90px;height:110px;object-fit:cover;border-radius:10px;background:var(--rosa2)}
+.thumb{display:flex;align-items:center;justify-content:center;color:var(--rosa);font-size:12px;text-align:center}
+.vgrid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.vgrid label{margin:0;display:flex;flex-direction:column;align-items:center;font-size:12px;border:1px solid var(--borde);border-radius:8px;padding:4px 6px}
+.vgrid input{width:56px;padding:4px;text-align:center}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:700px){.g2{grid-template-columns:1fr}}
+.fotos{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.fotos div{position:relative}.fotos img{width:80px;height:100px;object-fit:cover;border-radius:8px}
+.fotos button{position:absolute;top:2px;right:2px;border:0;border-radius:50%;width:22px;height:22px;background:#000a;color:#fff;cursor:pointer}
+.colorbox{border:1px dashed var(--borde);border-radius:10px;padding:10px;margin-top:10px}
+.tallas{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px;margin-top:8px}.tallas label{margin:0;text-align:center;font-size:12px}
+.tallas input{text-align:center;padding:6px}
+textarea{width:100%;padding:10px 12px;border:1px solid var(--borde);border-radius:9px;font:inherit;min-height:80px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:700px){.fila{grid-template-columns:1fr}th:nth-child(4),td:nth-child(4){display:none}}
 </style>
 </head>
@@ -65,7 +78,29 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;p
       <div class="kpis"><div class="kpi"><small>Pedidos (31 días)</small><div id="kN">–</div></div><div class="kpi"><small>Total cobrado</small><div id="kT">–</div></div><div class="kpi"><small>Impuesto cobrado</small><div id="kI">–</div></div><div class="kpi"><small>Por enviar</small><div id="kP">–</div></div></div>
       <div class="card"><h2>Pedidos</h2><div id="ventas"></div></div>
     </div>
-    <div id="tStock" class="oculto"><div class="card"><h2>Inventario por modelo, color y talla</h2><div id="stock"></div></div></div>
+    <div id="tStock" class="oculto">
+      <div class="card" id="formProd" style="display:none">
+        <h2 id="fTitulo">Agregar prenda nueva</h2>
+        <label>Fotos (la primera es la principal)</label>
+        <input type="file" id="fFotos" accept="image/*" multiple>
+        <div class="fotos" id="fPrev"></div>
+        <div class="g2">
+          <div><label>Referencia</label><input id="fRef" placeholder="Ej. 11420"></div>
+          <div><label>Nombre que verá la clienta</label><input id="fNombre" placeholder="Ej. Faja Ref. 11420"></div>
+          <div><label>Categoría</label><select id="fCat"></select></div>
+          <div><label>Precio (USD)</label><input id="fPrecio" type="number" min="1" step="0.01" placeholder="150"></div>
+        </div>
+        <label>Descripción</label><textarea id="fDesc" placeholder="Ej. Faja de alta compresión con brazos y piernas a la rodilla."></textarea>
+        <label>Colores, tallas y cantidades (deja en 0 las tallas que no tienes)</label>
+        <div id="fColores"></div>
+        <button class="s" id="fMasColor" type="button" style="margin-top:8px">+ Agregar otro color</button>
+        <div class="row" style="margin-top:14px"><label style="margin:0;display:flex;gap:6px;align-items:center;color:var(--negro)"><input type="checkbox" id="fActivo" checked style="width:auto"> Visible en la tienda</label></div>
+        <div class="row"><button class="p" id="fGuardar" style="width:auto">Guardar prenda</button><button class="s" id="fCancelar" type="button" style="margin-top:16px">Cancelar</button></div>
+        <div class="msg" id="mProd"></div>
+      </div>
+      <div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Mis prendas</h2><button class="p" id="btnNueva" style="width:auto;margin:0">+ Agregar prenda nueva</button></div>
+      <div id="stock"></div></div>
+    </div>
     <div id="tReportes" class="oculto"><div class="card"><h2>Reportes para la contadora</h2>
       <p style="color:var(--gris);font-size:14px">Solo incluyen ventas reales (no las de prueba). Archivo CSV que se abre en Excel o Google Sheets.</p>
       <button class="s" data-rep="mensual">Descargar reporte mensual de ventas</button>
@@ -172,19 +207,108 @@ async function cargarVentas() {
   });
 }
 
+const CATS = [['fajas-con-mangas','Fajas con mangas'],['fajas-largas','Fajas a la rodilla'],['fajas-cortas','Fajas cortas'],['strapless','Fajas strapless'],['cinturillas','Cinturillas'],['vestidos','Vestidos'],['ropa','Ropa'],['accesorios','Accesorios']];
+const TALLAS = ['XXS','XS','S','M','L','XL','XXL','3XL'];
+let CATALOGO = [], FOTOS = [], EDIT_ID = null;
+$('fCat').innerHTML = CATS.map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+
+function bloqueColor(color = '', cant = {}) {
+  const d = document.createElement('div'); d.className = 'colorbox';
+  d.innerHTML = `<div class="row"><input class="cNombre" placeholder="Color (ej. Mocca, Negro)" value="${esc(color)}" style="max-width:260px"><button class="s cQuitar" type="button">Quitar color</button></div>
+    <div class="tallas">${TALLAS.concat(Object.keys(cant).filter(t => !TALLAS.includes(t))).map(t => `<label>${t}<input type="number" min="0" data-t="${t}" value="${cant[t] ?? 0}"></label>`).join('')}</div>`;
+  d.querySelector('.cQuitar').onclick = () => d.remove();
+  $('fColores').appendChild(d);
+}
+function pintarFotos() {
+  $('fPrev').innerHTML = FOTOS.map((u, i) => `<div><img src="${esc(u)}"><button type="button" data-i="${i}">×</button></div>`).join('');
+  $('fPrev').querySelectorAll('button').forEach(b => b.onclick = () => { FOTOS.splice(+b.dataset.i, 1); pintarFotos(); });
+}
+function abrirForm(p) {
+  EDIT_ID = p ? p.id : null; FOTOS = p ? (p.imagenes || []).slice() : [];
+  $('fTitulo').textContent = p ? 'Editar prenda' : 'Agregar prenda nueva';
+  $('fRef').value = p ? (p.sku || '').replace(/^REF-/i, '') : ''; $('fRef').disabled = !!p;
+  $('fNombre').value = p ? p.nombre : ''; $('fCat').value = p ? (p.categoria_web || 'fajas-largas') : 'fajas-largas';
+  $('fPrecio').value = p ? (p.precio_cents / 100) : ''; $('fDesc').value = p ? (p.descripcion || '') : '';
+  $('fActivo').checked = p ? p.activo : true;
+  $('fColores').innerHTML = '';
+  if (p && p.variantes.length) {
+    const porColor = {}; p.variantes.forEach(v => { (porColor[v.color] = porColor[v.color] || {})[v.talla] = v.stock; });
+    Object.entries(porColor).forEach(([c, t]) => bloqueColor(c, t));
+  } else bloqueColor('Mocca');
+  pintarFotos(); $('mProd').className = 'msg';
+  $('formProd').style.display = 'block'; $('formProd').scrollIntoView({ behavior: 'smooth' });
+}
+$('btnNueva').onclick = () => abrirForm(null);
+$('fCancelar').onclick = () => $('formProd').style.display = 'none';
+$('fMasColor').onclick = () => bloqueColor('');
+$('fRef').oninput = () => { if (!EDIT_ID && (!$('fNombre').value || /^Faja Ref\. /.test($('fNombre').value))) $('fNombre').value = $('fRef').value ? 'Faja Ref. ' + $('fRef').value : ''; };
+
+function reducir(file) {   // la foto se achica en el teléfono/computadora antes de subirla
+  return new Promise((ok, mal) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => { const m = 1400, k = Math.min(1, m / Math.max(img.width, img.height)); const c = document.createElement('canvas');
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); ok(c.toDataURL('image/jpeg', 0.85).split(',')[1]); };
+    img.onerror = () => mal(new Error('No se pudo leer la foto')); img.src = url;
+  });
+}
+$('fFotos').onchange = async (e) => {
+  const files = [...e.target.files]; e.target.value = '';
+  for (const f of files) {
+    msg('mProd', 'Subiendo foto ' + f.name + '…', true);
+    try { const b64 = await reducir(f); const r = await api('', { method: 'POST', body: JSON.stringify({ accion: 'foto', tipo: 'image/jpeg', base64: b64 }) });
+      const d = await r.json(); if (!r.ok) throw new Error(d.error); FOTOS.push(d.url); pintarFotos(); }
+    catch (err) { return msg('mProd', 'Error al subir la foto: ' + err.message); }
+  }
+  msg('mProd', 'Fotos listas. Ahora completa los datos y toca Guardar prenda.', true);
+};
+$('fGuardar').onclick = async () => {
+  const variantes = [];
+  document.querySelectorAll('#fColores .colorbox').forEach(cb => {
+    const color = cb.querySelector('.cNombre').value.trim(); if (!color) return;
+    cb.querySelectorAll('input[data-t]').forEach(i => { const n = parseInt(i.value) || 0; const existia = EDIT_ID && (CATALOGO.find(p => p.id === EDIT_ID)?.variantes || []).some(v => v.color === color && v.talla === i.dataset.t);
+      if (n > 0 || existia) variantes.push({ color, talla: i.dataset.t, stock: n }); });
+  });
+  if (!$('fNombre').value.trim()) return msg('mProd', 'Escribe el nombre de la prenda.');
+  if (!(+$('fPrecio').value > 0)) return msg('mProd', 'Escribe el precio.');
+  if (!variantes.length) return msg('mProd', 'Pon la cantidad de al menos una talla.');
+  if (!FOTOS.length && !EDIT_ID && !confirm('¿Guardar sin fotos? Podrás agregarlas después.')) return;
+  const b = $('fGuardar'); b.disabled = true;
+  const r = await api('', { method: 'POST', body: JSON.stringify({ accion: 'producto', id: EDIT_ID, ref: $('fRef').value, nombre: $('fNombre').value.trim(),
+    precio: $('fPrecio').value, categoria: $('fCat').value, descripcion: $('fDesc').value.trim(), imagenes: FOTOS, activo: $('fActivo').checked, variantes }) });
+  const d = await r.json(); b.disabled = false;
+  if (!r.ok) return msg('mProd', 'No se pudo guardar: ' + (d.error || r.status));
+  msg('mProd', 'Prenda guardada. Aparecerá en la tienda en menos de un minuto.', true);
+  setTimeout(() => $('formProd').style.display = 'none', 1500);
+  cargarStock();
+};
+
 async function cargarStock() {
   $('stock').innerHTML = '<div class="vacio">Cargando…</div>';
-  const r = await api('?stock=1'); const vs = await r.json();
-  $('stock').innerHTML = `<table><tr><th>Modelo</th><th>Color</th><th>Talla</th><th>Precio</th><th>Stock</th><th></th></tr>` + vs.map(v => `
-    <tr><td>${esc(v.productos?.nombre || v.producto_id)}<br><small style="color:var(--gris)">${esc(v.producto_id)}</small></td><td>${esc(v.color)}</td><td>${esc(v.talla)}</td><td>${usd(v.productos?.precio_cents)}</td>
-    <td><input class="stock" type="number" min="0" value="${v.stock}"> ${v.stock === 0 ? '<span class="agot">Agotado</span>' : ''}</td>
-    <td><button class="s" data-p="${esc(v.producto_id)}" data-c="${esc(v.color)}" data-t="${esc(v.talla)}">Guardar</button></td></tr>`).join('') + '</table>';
-  document.querySelectorAll('#stock button').forEach(b => b.onclick = async () => {
-    b.disabled = true;
-    const val = b.closest('tr').querySelector('.stock').value;
-    const r = await api('', { method: 'POST', body: JSON.stringify({ accion: 'stock', producto_id: b.dataset.p, color: b.dataset.c, talla: b.dataset.t, stock: val }) });
-    b.disabled = false; b.textContent = r.ok ? 'Guardado ✓' : 'Error';
-    setTimeout(() => b.textContent = 'Guardar', 2000);
+  const r = await api('?catalogo=1'); CATALOGO = await r.json();
+  if (!CATALOGO.length) return $('stock').innerHTML = '<div class="vacio">Todavía no hay prendas.</div>';
+  const catN = Object.fromEntries(CATS);
+  $('stock').innerHTML = CATALOGO.map(p => {
+    const total = p.variantes.reduce((s, v) => s + v.stock, 0);
+    return `<div class="prod" data-id="${esc(p.id)}">
+      ${p.imagenes && p.imagenes[0] ? `<img src="${esc(p.imagenes[0])}" alt="">` : '<div class="thumb">Foto de la web</div>'}
+      <div><div class="row" style="justify-content:space-between"><div><b>${esc(p.nombre)}</b> · ${usd(p.precio_cents)}<br>
+        <small style="color:var(--gris)">${esc(catN[p.categoria_web] || p.categoria_web)} · ${total} piezas ${p.activo ? '' : '· <span class="agot">Oculta</span>'}</small></div>
+        <button class="s bEditar">Editar / agregar tallas</button></div>
+      <div class="vgrid">${p.variantes.sort((a, b) => a.color.localeCompare(b.color) || TALLAS.indexOf(a.talla) - TALLAS.indexOf(b.talla)).map(v => `<label>${esc(v.color)} · ${esc(v.talla)}<input type="number" min="0" value="${v.stock}" data-c="${esc(v.color)}" data-t="${esc(v.talla)}">${v.stock === 0 ? '<span class="agot">agotada</span>' : ''}</label>`).join('')}</div>
+      <button class="s bStock" style="margin-top:8px">Guardar cantidades</button></div></div>`;
+  }).join('');
+  document.querySelectorAll('.prod').forEach(el => {
+    const p = CATALOGO.find(x => x.id === el.dataset.id);
+    el.querySelector('.bEditar').onclick = () => abrirForm(p);
+    el.querySelector('.bStock').onclick = async (ev) => {
+      const b = ev.target; b.disabled = true; let ok = true;
+      for (const i of el.querySelectorAll('.vgrid input')) {
+        const v = p.variantes.find(x => x.color === i.dataset.c && x.talla === i.dataset.t);
+        if (v && +i.value !== v.stock) { const r = await api('', { method: 'POST', body: JSON.stringify({ accion: 'stock', producto_id: p.id, color: v.color, talla: v.talla, stock: i.value }) }); ok = ok && r.ok; }
+      }
+      b.disabled = false; b.textContent = ok ? 'Guardado ✓' : 'Error'; setTimeout(() => cargarStock(), 1200);
+    };
   });
 }
 
