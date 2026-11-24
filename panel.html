@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel · Bella Boutique</title>
+<style>
+:root{--rosa:#d6336c;--rosa2:#fde7ef;--negro:#141014;--oro:#b8924a;--gris:#6b6470;--borde:#eadfe4;--fondo:#fbf7f9}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--fondo);color:var(--negro)}
+header{background:var(--negro);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+header b{font-family:Georgia,serif;font-size:20px;color:#fff}header b span{color:var(--oro)}
+header button{background:transparent;color:#fff;border:1px solid #fff5;border-radius:8px;padding:6px 12px;cursor:pointer}
+main{max-width:1100px;margin:0 auto;padding:20px}
+.card{background:#fff;border:1px solid var(--borde);border-radius:14px;padding:20px;margin-bottom:16px}
+.login{max-width:380px;margin:60px auto}
+h1{font-family:Georgia,serif;font-weight:normal;margin:0 0 6px}h2{font-size:17px;margin:0 0 12px}
+label{display:block;font-size:13px;color:var(--gris);margin:12px 0 4px}
+input,select{width:100%;padding:10px 12px;border:1px solid var(--borde);border-radius:9px;font-size:15px;background:#fff}
+button.p{background:var(--rosa);color:#fff;border:0;border-radius:999px;padding:11px 18px;font-size:15px;cursor:pointer;margin-top:16px;width:100%}
+button.s{background:#fff;color:var(--negro);border:1px solid var(--borde);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px}
+button:disabled{opacity:.6;cursor:wait}
+a.link{color:var(--rosa);font-size:13px;cursor:pointer;display:inline-block;margin-top:12px}
+.msg{font-size:14px;margin-top:12px;padding:10px;border-radius:8px;display:none}.msg.ok{background:#e8f6ee;color:#1d6b3d;display:block}.msg.err{background:#fdecec;color:#a12626;display:block}
+nav{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}nav button{background:#fff;border:1px solid var(--borde);border-radius:999px;padding:8px 16px;cursor:pointer;font-size:14px}
+nav button.on{background:var(--negro);color:#fff;border-color:var(--negro)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:14px}.kpi small{color:var(--gris);font-size:12px}.kpi div{font-size:22px;font-weight:600;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--borde);vertical-align:top}th{font-size:12px;color:var(--gris);font-weight:500}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--rosa2);color:var(--rosa)}
+.tag.test{background:#fff4d6;color:#8a6200}
+.fila{display:grid;grid-template-columns:1fr 1fr 1.4fr auto;gap:8px;margin-top:8px}
+.stock{width:70px;padding:6px}.agot{color:#a12626;font-weight:600}
+.vacio{color:var(--gris);text-align:center;padding:30px}
+.oculto{display:none}
+@media(max-width:700px){.fila{grid-template-columns:1fr}th:nth-child(4),td:nth-child(4){display:none}}
+</style>
+</head>
+<body>
+<header><b>Bella <span>Boutique</span> · Panel</b><button id="salir" class="oculto">Salir</button></header>
+<main>
+  <!-- Ingreso -->
+  <section id="vLogin" class="card login oculto">
+    <h1>Ingresar</h1><div style="color:var(--gris);font-size:14px">Panel privado de la tienda</div>
+    <label>Correo</label><input id="email" type="email" autocomplete="username">
+    <label>Contraseña</label><input id="pass" type="password" autocomplete="current-password">
+    <button class="p" id="btnLogin">Entrar</button>
+    <a class="link" id="olvide">¿Olvidaste tu contraseña?</a>
+    <div class="msg" id="mLogin"></div>
+  </section>
+
+  <!-- Crear / cambiar contraseña (invitación o recuperación) -->
+  <section id="vPass" class="card login oculto">
+    <h1>Crea tu contraseña</h1><div style="color:var(--gris);font-size:14px">Mínimo 10 caracteres. Solo tú la conocerás.</div>
+    <label>Nueva contraseña</label><input id="p1" type="password" autocomplete="new-password">
+    <label>Repite la contraseña</label><input id="p2" type="password" autocomplete="new-password">
+    <button class="p" id="btnPass">Guardar contraseña</button>
+    <div class="msg" id="mPass"></div>
+  </section>
+
+  <!-- Panel -->
+  <section id="vPanel" class="oculto">
+    <nav><button data-t="ventas" class="on">Ventas en línea</button><button data-t="stock">Inventario</button><button data-t="reportes">Reportes</button></nav>
+    <div id="tVentas">
+      <div class="kpis"><div class="kpi"><small>Pedidos (31 días)</small><div id="kN">–</div></div><div class="kpi"><small>Total cobrado</small><div id="kT">–</div></div><div class="kpi"><small>Impuesto cobrado</small><div id="kI">–</div></div><div class="kpi"><small>Por enviar</small><div id="kP">–</div></div></div>
+      <div class="card"><h2>Pedidos</h2><div id="ventas"></div></div>
+    </div>
+    <div id="tStock" class="oculto"><div class="card"><h2>Inventario por modelo, color y talla</h2><div id="stock"></div></div></div>
+    <div id="tReportes" class="oculto"><div class="card"><h2>Reportes para la contadora</h2>
+      <p style="color:var(--gris);font-size:14px">Solo incluyen ventas reales (no las de prueba). Archivo CSV que se abre en Excel o Google Sheets.</p>
+      <button class="s" data-rep="mensual">Descargar reporte mensual de ventas</button>
+      <button class="s" data-rep="impuestos">Descargar reporte de sales tax</button>
+      <div class="msg" id="mRep"></div></div></div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const URL_SB = 'https://xxnbsbzpjjyatlhgbain.supabase.co';
+const KEY = 'sb_publishable_qdmIJwxFPSxu2oa3EZQB9w_LOCi2k3Y';
+const PANEL = location.origin + location.pathname;
+const sb = supabase.createClient(URL_SB, KEY, { auth: { persistSession: true, detectSessionInUrl: true, flowType: 'implicit' } });
+const $ = (id) => document.getElementById(id);
+const ver = (id) => ['vLogin','vPass','vPanel'].forEach(v => $(v).classList.toggle('oculto', v !== id));
+const msg = (id, t, ok) => { const m = $(id); m.textContent = t; m.className = 'msg ' + (ok ? 'ok' : 'err'); };
+const usd = (c) => '$' + ((c || 0) / 100).toFixed(2);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ESTADOS = {pagado:'Pagado',preparando:'Preparando',enviado:'Enviado',entregado:'Entregado',listo_retiro:'Listo para retirar',retirado:'Retirado',reembolsado:'Reembolsado',sin_stock:'Sin stock'};
+let modoClave = /type=(invite|recovery)/.test(location.hash);
+
+async function api(path, opts = {}) {
+  const { data: { session } } = await sb.auth.getSession();
+  const r = await fetch(URL_SB + '/functions/v1/caja' + path, { ...opts, headers: { apikey: KEY, authorization: 'Bearer ' + (session?.access_token || ''), 'content-type': 'application/json', ...(opts.headers || {}) } });
+  if (r.status === 401) { await sb.auth.signOut(); ver('vLogin'); msg('mLogin', 'Tu correo no tiene acceso a este panel.'); throw new Error('401'); }
+  return r;
+}
+
+sb.auth.onAuthStateChange((ev, session) => {
+  if (ev === 'PASSWORD_RECOVERY') modoClave = true;
+  pintar(session);
+});
+async function pintar(session) {
+  $('salir').classList.toggle('oculto', !session);
+  if (!session) return ver('vLogin');
+  if (modoClave) return ver('vPass');
+  ver('vPanel'); cargarVentas();
+}
+
+$('btnLogin').onclick = async () => {
+  const b = $('btnLogin'); b.disabled = true;
+  const { error } = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('pass').value });
+  b.disabled = false;
+  if (error) msg('mLogin', 'Correo o contraseña incorrectos.');
+};
+$('pass').onkeydown = (e) => { if (e.key === 'Enter') $('btnLogin').click(); };
+$('olvide').onclick = async () => {
+  const email = $('email').value.trim();
+  if (!email) return msg('mLogin', 'Escribe tu correo arriba y vuelve a tocar "¿Olvidaste tu contraseña?".');
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: PANEL });
+  msg('mLogin', error ? 'No se pudo enviar el correo. Intenta en unos minutos.' : 'Te enviamos un correo para crear una nueva contraseña.', !error);
+};
+$('btnPass').onclick = async () => {
+  const a = $('p1').value, b = $('p2').value;
+  if (a.length < 10) return msg('mPass', 'La contraseña debe tener al menos 10 caracteres.');
+  if (a !== b) return msg('mPass', 'Las contraseñas no coinciden.');
+  const { error } = await sb.auth.updateUser({ password: a });
+  if (error) return msg('mPass', 'No se pudo guardar: ' + error.message);
+  modoClave = false; history.replaceState(null, '', PANEL);
+  msg('mPass', 'Contraseña guardada.', true);
+  setTimeout(() => sb.auth.getSession().then(({ data }) => pintar(data.session)), 800);
+};
+$('salir').onclick = () => sb.auth.signOut();
+
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
+  const t = b.dataset.t;
+  $('tVentas').classList.toggle('oculto', t !== 'ventas'); $('tStock').classList.toggle('oculto', t !== 'stock'); $('tReportes').classList.toggle('oculto', t !== 'reportes');
+  if (t === 'ventas') cargarVentas(); if (t === 'stock') cargarStock();
+});
+
+async function cargarVentas() {
+  $('ventas').innerHTML = '<div class="vacio">Cargando…</div>';
+  const r = await api(''); const ps = await r.json();
+  const reales = ps.filter(p => ['pagado','preparando','enviado','entregado','listo_retiro','retirado'].includes(p.estado));
+  $('kN').textContent = reales.length;
+  $('kT').textContent = usd(reales.reduce((s, p) => s + p.total_cents, 0));
+  $('kI').textContent = usd(reales.reduce((s, p) => s + p.impuesto_cents, 0));
+  $('kP').textContent = ps.filter(p => ['pagado','preparando','listo_retiro'].includes(p.estado)).length;
+  if (!ps.length) return $('ventas').innerHTML = '<div class="vacio">Todavía no hay ventas en línea.</div>';
+  $('ventas').innerHTML = ps.map(p => `
+    <div style="border-bottom:1px solid var(--borde);padding:12px 0">
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <div><b>${esc(p.numero)}</b> · ${new Date(p.creado).toLocaleString('es-US')} ${p.modo === 'test' ? '<span class="tag test">prueba</span>' : ''}<br>
+        ${esc(p.cliente_nombre)} · ${esc(p.cliente_email)} · ${esc(p.cliente_telefono)}<br>
+        <span style="color:var(--gris);font-size:13px">${p.entrega === 'retiro' ? 'Retiro en tienda' : 'Envío: ' + esc(p.direccion ? [p.direccion.line1, p.direccion.city, p.direccion.state, p.direccion.postal_code].filter(Boolean).join(', ') : '')}</span></div>
+        <div style="text-align:right"><b>${usd(p.total_cents)}</b><br><span class="tag">${ESTADOS[p.estado] || p.estado}</span></div>
+      </div>
+      <div style="font-size:13px;margin-top:6px">${(p.pedido_items || []).map(i => `${i.cantidad} × ${esc(i.nombre)} · ${esc(i.color)} · ${esc(i.talla)}`).join('<br>')}</div>
+      <div class="fila" data-n="${esc(p.numero)}">
+        <select class="e">${Object.entries(ESTADOS).map(([k, v]) => `<option value="${k}" ${k === p.estado ? 'selected' : ''}>${v}</option>`).join('')}</select>
+        <select class="t"><option value="">Transportista</option>${['USPS','UPS','FedEx','DHL'].map(t => `<option ${t === p.transportista ? 'selected' : ''}>${t}</option>`).join('')}</select>
+        <input class="g" placeholder="Número de guía" value="${esc(p.guia)}">
+        <button class="s">Guardar</button>
+      </div>
+      ${p.url_seguimiento ? `<a class="link" target="_blank" href="${esc(p.url_seguimiento)}">Ver rastreo</a>` : ''}
+    </div>`).join('');
+  document.querySelectorAll('.fila button').forEach(b => b.onclick = async () => {
+    const f = b.parentElement; b.disabled = true;
+    const r = await api('', { method: 'POST', body: JSON.stringify({ accion: 'estado', numero: f.dataset.n, estado: f.querySelector('.e').value, transportista: f.querySelector('.t').value || null, guia: f.querySelector('.g').value }) });
+    b.disabled = false; b.textContent = r.ok ? 'Guardado ✓' : 'Error';
+    setTimeout(() => b.textContent = 'Guardar', 2000);
+  });
+}
+
+async function cargarStock() {
+  $('stock').innerHTML = '<div class="vacio">Cargando…</div>';
+  const r = await api('?stock=1'); const vs = await r.json();
+  $('stock').innerHTML = `<table><tr><th>Modelo</th><th>Color</th><th>Talla</th><th>Precio</th><th>Stock</th><th></th></tr>` + vs.map(v => `
+    <tr><td>${esc(v.productos?.nombre || v.producto_id)}<br><small style="color:var(--gris)">${esc(v.producto_id)}</small></td><td>${esc(v.color)}</td><td>${esc(v.talla)}</td><td>${usd(v.productos?.precio_cents)}</td>
+    <td><input class="stock" type="number" min="0" value="${v.stock}"> ${v.stock === 0 ? '<span class="agot">Agotado</span>' : ''}</td>
+    <td><button class="s" data-p="${esc(v.producto_id)}" data-c="${esc(v.color)}" data-t="${esc(v.talla)}">Guardar</button></td></tr>`).join('') + '</table>';
+  document.querySelectorAll('#stock button').forEach(b => b.onclick = async () => {
+    b.disabled = true;
+    const val = b.closest('tr').querySelector('.stock').value;
+    const r = await api('', { method: 'POST', body: JSON.stringify({ accion: 'stock', producto_id: b.dataset.p, color: b.dataset.c, talla: b.dataset.t, stock: val }) });
+    b.disabled = false; b.textContent = r.ok ? 'Guardado ✓' : 'Error';
+    setTimeout(() => b.textContent = 'Guardar', 2000);
+  });
+}
+
+document.querySelectorAll('[data-rep]').forEach(b => b.onclick = async () => {
+  const r = await api('?reporte=' + b.dataset.rep + '&formato=csv');
+  const txt = await r.text();
+  if (!txt) return msg('mRep', 'Todavía no hay ventas reales para este reporte.');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + txt], { type: 'text/csv' }));
+  a.download = `bella-boutique-${b.dataset.rep}.csv`; a.click();
+});
+
+sb.auth.getSession().then(({ data }) => pintar(data.session));
+</script>
+</body>
+</html>
