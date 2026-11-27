@@ -142,7 +142,7 @@ textarea{width:100%;padding:10px 12px;border:1px solid var(--borde);border-radiu
         <div class="row"><button class="p" id="fGuardar" style="width:auto">Guardar prenda</button><button class="s" id="fCancelar" type="button" style="margin-top:16px">Cancelar</button></div>
         <div class="msg" id="mProd"></div>
       </div>
-      <div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Mis prendas</h2><button class="p" id="btnNueva" style="width:auto;margin:0">+ Agregar prenda nueva</button></div>
+      <div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Mis prendas</h2><div class="row"><button class="s" id="btnInv" type="button">Descargar / imprimir inventario</button><button class="p" id="btnNueva" style="width:auto;margin:0">+ Agregar prenda nueva</button></div></div>
       <div id="stock"></div></div>
     </div>
     <div id="tReportes" class="oculto"><div class="card"><h2>Reportes para la contadora</h2>
@@ -357,6 +357,24 @@ async function cargarStock() {
     };
   });
 }
+
+/* ---------- Inventario para imprimir (total por prenda) ---------- */
+$('btnInv').onclick = async () => {
+  if (!CATALOGO.length) { const r = await api('?catalogo=1'); CATALOGO = await r.json(); }
+  const catN = Object.fromEntries(CATS); let tot = 0, val = 0;
+  const filas = CATALOGO.filter(p => p.id !== 'ref-prueba').sort((a, b) => String(a.sku).localeCompare(String(b.sku))).map(p => {
+    const vs = p.variantes.slice().sort((a, b) => a.color.localeCompare(b.color) || TALLAS.indexOf(a.talla) - TALLAS.indexOf(b.talla));
+    const t = vs.reduce((s, v) => s + v.stock, 0); tot += t; val += t * p.precio_cents;
+    return `<tr><td>${esc(p.sku || '')}</td><td>${esc(p.nombre)}${p.activo ? '' : ' (oculta)'}</td><td>${esc(catN[p.categoria_web] || p.categoria_web)}</td><td>${usd(p.precio_cents)}</td><td>${vs.map(v => esc(v.color + ' ' + v.talla) + ': ' + v.stock).join(' · ')}</td><td style="text-align:center"><b>${t}</b></td></tr>`;
+  }).join('');
+  const w = window.open('', '_blank'); if (!w) return alert('Permite las ventanas emergentes para imprimir.');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Inventario Bella Boutique ${new Date().toLocaleDateString('es-US')}</title><style>body{font-family:Arial,sans-serif;margin:24px;color:#141014}h1{font-family:Georgia,serif;font-weight:normal;margin:0}table{width:100%;border-collapse:collapse;font-size:12px;margin-top:14px}th{background:#141014;color:#fff;text-align:left;padding:6px}td{border-bottom:1px solid #eadfe4;padding:6px;vertical-align:top}tfoot td{background:#fde7ef;font-weight:bold}@media print{.np{display:none}}</style></head><body>
+    <div style="display:flex;align-items:center;gap:14px"><img src="${URL_SB}/storage/v1/object/public/productos/marca/logo-bella-boutique.png" width="70"><div><h1>Inventario · Bella Boutique</h1><div style="color:#6b6470;font-size:13px">Al ${new Date().toLocaleString('es-US')} · total de piezas por prenda, color y talla</div></div></div>
+    <table><thead><tr><th>Código</th><th>Prenda</th><th>Categoría</th><th>Precio</th><th>Color · talla (piezas)</th><th>Total</th></tr></thead><tbody>${filas}</tbody>
+    <tfoot><tr><td></td><td>Total general</td><td></td><td></td><td>Valor a precio de venta: ${usd(val)}</td><td style="text-align:center">${tot}</td></tr></tfoot></table>
+    <div class="np" style="margin-top:16px;text-align:center"><button onclick="print()" style="padding:10px 20px;font-size:16px">Imprimir o guardar como PDF</button></div></body></html>`);
+  w.document.close();
+};
 
 /* ---------- Resumen del día (ventas y reembolsos de hoy) ---------- */
 async function resumenHoy(ps) {
