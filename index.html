@@ -451,11 +451,11 @@ function defaults(){
       heroText: 'Fajas colombianas de alta compresión para moldear cintura, abdomen, espalda y brazos. Envíos a todo Estados Unidos y tienda física en Levittown, NY.',
       heroImage: '',
       whatsapp: '16462396846', email: 'bellaboutiquefajas@gmail.com', instagram: 'https://www.instagram.com/bellaboutiqueofficial__/',
-      store: 'Levittown, NY', hours: 'Jueves a domingo · 10 AM – 8 PM',
+      store: 'Levittown, NY', hours: 'Todos los días · 24 horas',
       currency: 'USD', currencySymbol: '$', country: 'Estados Unidos',
       ga4: '', pixel: '', ghlWebhook: '', adminPin: 'bella-demo',
       policies: {
-        envios: 'Enviamos a todo Estados Unidos. También puedes recoger tu pedido en nuestra tienda de Levittown, NY (jueves a domingo, 10 AM – 8 PM).\n\n[Pendiente] Costos de envío, transportadora y tiempos de entrega.',
+        envios: 'Enviamos a todo Estados Unidos. Atendemos todos los días, las 24 horas. Dependiendo del lugar, tu pedido puede llegar el mismo día o dentro de 24 a 72 horas. También puedes recoger tu pedido en nuestra tienda de Levittown, NY.\n\n[Pendiente] Costos de envío y transportadora.',
         cambios: '[Pendiente] Condiciones de cambio y devolución. Por higiene, muchas tiendas de fajas no aceptan cambios en prendas usadas o sin etiqueta; confirmar la política real de Bella Boutique.',
         privacidad: '[Pendiente] Política de privacidad: qué datos se recogen (nombre, correo, teléfono, dirección), para qué se usan y cómo pedir que se borren.',
         terminos: '[Pendiente] Términos y condiciones de compra.'
@@ -503,8 +503,8 @@ function defaults(){
     ],
     faqs: [
       {q:'¿Cómo sé cuál es mi talla?', a:'Usa la guía de tallas: ingresa tu cintura y cadera en centímetros y te sugerimos una talla según la tabla del fabricante. Si dudas entre dos tallas, escríbenos por WhatsApp al +1 (646) 239-6846.'},
-      {q:'¿Hacen envíos?', a:'Sí, enviamos a todo Estados Unidos. [Pendiente] Costos y tiempos de entrega.'},
-      {q:'¿Tienen tienda física?', a:'Sí, en Levittown, NY. Abrimos de jueves a domingo, de 10 AM a 8 PM.'},
+      {q:'¿Hacen envíos?', a:'Sí, enviamos a todo Estados Unidos. Dependiendo del lugar, tu pedido puede llegar el mismo día o dentro de 24 a 72 horas.'},
+      {q:'¿Tienen tienda física?', a:'Sí, en Levittown, NY. Atendemos todos los días, las 24 horas.'},
       {q:'¿Qué métodos de pago aceptan?', a:'[Pendiente] Métodos de pago disponibles.'},
       {q:'¿Puedo cambiar una faja?', a:'[Pendiente] Política de cambios.'},
       {q:'¿Puedo usar la faja después de una cirugía?', a:'El uso de una faja después de una cirugía o del parto debe indicarlo tu médico. Nuestra guía orienta sobre la talla; no sustituye una indicación médica.'}
@@ -567,6 +567,11 @@ function applyPrecios(st){ st.stockImports=st.stockImports||[]; if(st.stockImpor
 let S = ls.get(KEY, null) || defaults();
 if(!S.settings.email) S.settings.email='bellaboutiquefajas@gmail.com';
 if(applyStockReal(S) | applyFotos(S) | applyPrecios(S)) ls.set(KEY, S);
+/* Horario 24h y tiempos de entrega (actualiza navegadores con datos guardados) */
+(function(st){ try{ var c=false, set=st.settings||{}; if(set.hours!=='Todos los días · 24 horas'){ set.hours='Todos los días · 24 horas'; c=true; }
+  var pol=set.policies||st.policies; if(pol&&pol.envios&&pol.envios.indexOf('24 a 72')<0){ pol.envios='Enviamos a todo Estados Unidos. Atendemos todos los días, las 24 horas. Dependiendo del lugar, tu pedido puede llegar el mismo día o dentro de 24 a 72 horas. También puedes recoger tu pedido en nuestra tienda de Levittown, NY.\n\n[Pendiente] Costos de envío y transportadora.'; c=true; }
+  (st.faqs||set.faqs||[]).forEach(function(f){ if(f.q==='¿Hacen envíos?'&&f.a.indexOf('24 a 72')<0){ f.a='Sí, enviamos a todo Estados Unidos. Dependiendo del lugar, tu pedido puede llegar el mismo día o dentro de 24 a 72 horas.'; c=true; } if(f.q==='¿Tienen tienda física?'&&f.a.indexOf('24 horas')<0){ f.a='Sí, en Levittown, NY. Atendemos todos los días, las 24 horas.'; c=true; } });
+  if(c) ls.set(KEY, st); }catch(e){} })(S);
 let CART = ls.get(CART_KEY, []);
 const save = () => { if(!ls.set(KEY, S)) toast('No se pudo guardar: el almacenamiento del navegador está lleno o bloqueado.'); };
 const saveCart = () => { ls.set(CART_KEY, CART); renderCartCount(); };
@@ -718,8 +723,8 @@ function viewHome(){
     <div class="benefits">
       <div><div class="eyebrow">01 · Talla</div><h3>Guía por medidas</h3><p class="muted small">Ingresa tus medidas y te sugerimos la talla según la tabla del fabricante de cada prenda.</p><button class="link small" style="margin-top:10px" onclick="openSizeGuide()">Abrir guía</button></div>
       <div><div class="eyebrow">02 · Asesoría</div><h3>Te acompañamos</h3><p class="muted small">Resuelve tus dudas de modelo, compresión y talla por WhatsApp antes de comprar.</p></div>
-      <div><div class="eyebrow">03 · Pago</div><h3>Compra segura</h3><p class="muted small">Checkout como invitada en pocos pasos. Pasarela de pago pendiente de activar.</p></div>
-      <div><div class="eyebrow">04 · Envío</div><h3>Envíos a todo USA</h3><p class="muted small">O recoge tu pedido en la tienda de Levittown, NY, de jueves a domingo.</p></div>
+      <div><div class="eyebrow">03 · Pago</div><h3>Compra segura</h3><p class="muted small">Checkout como invitada en pocos pasos. Paga con tarjeta de forma segura.</p></div>
+      <div><div class="eyebrow">04 · Envío</div><h3>Envíos a todo USA</h3><p class="muted small">Llega el mismo día o en 24 a 72 horas, según el lugar. Atención todos los días, 24 horas.</p></div>
     </div>
   </div></section>
 
