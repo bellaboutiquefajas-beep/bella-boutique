@@ -170,6 +170,6 @@
     S.settings.policies = Object.assign({}, S.settings.policies, window.POLITICAS_TIENDA);
   }
   if (PAGOS) (S.faqs || []).forEach(f => {
-    if (/métodos de pago/i.test(f.q)) f.a = 'Tarjeta de crédito o débito (Visa, Mastercard, American Express, Discover), Apple Pay y Google Pay con pago seguro de Stripe. También puedes coordinar transferencia o Zelle por WhatsApp.';
+    if (/métodos de pago/i.test(f.q)) f.a = 'Tarjeta de crédito o débito (Visa, Mastercard, American Express, Discover), Apple Pay y Google Pay con pago seguro de Stripe. Por ahora solo aceptamos pagos con tarjeta.';
   });
 })();
