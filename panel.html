@@ -73,7 +73,48 @@ textarea{width:100%;padding:10px 12px;border:1px solid var(--borde);border-radiu
 
   <!-- Panel -->
   <section id="vPanel" class="oculto">
-    <nav><button data-t="ventas" class="on">Ventas en línea</button><button data-t="stock">Inventario</button><button data-t="reportes">Reportes</button></nav>
+    <nav><button data-t="ventas" class="on">Ventas en línea</button><button data-t="recibos">Caja · Recibos</button><button data-t="clientes">Clientes</button><button data-t="stock">Inventario</button><button data-t="reportes">Reportes</button></nav>
+    <div id="tRecibos" class="oculto">
+      <div class="card" id="formRec">
+        <div class="row" style="justify-content:space-between"><h2 style="margin:0" id="rTitulo">Nuevo recibo de pago</h2><button class="s" id="rLimpiar" type="button">Limpiar</button></div>
+        <label>Buscar clienta (nombre, teléfono o correo)</label>
+        <input id="rBuscar" placeholder="Escribe para buscar…" autocomplete="off"><div id="rSug"></div>
+        <div class="g2">
+          <div><label>Nombre</label><input id="rNombre"></div>
+          <div><label>Teléfono</label><input id="rTel" type="tel"></div>
+          <div><label>Correo (para enviarle el recibo)</label><input id="rEmail" type="email"></div>
+          <div><label>Forma de pago</label><select id="rMetodo"><option value="efectivo">Efectivo</option><option value="tarjeta">Tarjeta</option><option value="zelle">Zelle</option><option value="transferencia">Transferencia</option><option value="otro">Otro</option></select></div>
+        </div>
+        <label>Artículos</label>
+        <div id="rItems"></div>
+        <div class="row" style="margin-top:8px"><button class="s" id="rMasItem" type="button">+ Agregar artículo</button><select id="rProd" style="max-width:320px"><option value="">+ Agregar prenda de mi inventario…</option></select></div>
+        <div class="g2">
+          <div><label>Descuento (USD)</label><input id="rDesc" type="number" min="0" step="0.01" value="0"></div>
+          <div><label>Total</label><div id="rTotal" style="font-size:24px;font-weight:600;padding-top:6px">$0.00</div></div>
+        </div>
+        <label>Nota en el recibo (opcional)</label><input id="rNotas" placeholder="Ej. Abono 1 de 2, cambio de talla…">
+        <div class="row" style="margin-top:12px"><label style="margin:0;display:flex;gap:6px;align-items:center;color:var(--negro)"><input type="checkbox" id="rEnviar" checked style="width:auto"> Enviar el recibo por correo a la clienta</label></div>
+        <div class="row"><button class="p" id="rGuardar" style="width:auto">Guardar recibo</button><button class="s" id="rCancelarEd" type="button" style="margin-top:16px;display:none">Cancelar edición</button></div>
+        <div class="msg" id="mRec"></div>
+      </div>
+      <div class="card"><h2>Recibos emitidos</h2><input id="rFiltro" placeholder="Buscar por número, nombre o correo" style="margin-bottom:10px"><div id="recibos"></div></div>
+    </div>
+    <div id="tClientes" class="oculto">
+      <div class="card" id="formCli" style="display:none">
+        <h2 id="cTitulo">Editar clienta</h2>
+        <div class="g2">
+          <div><label>Nombre</label><input id="cNombre"></div>
+          <div><label>Teléfono</label><input id="cTel" type="tel"></div>
+          <div><label>Correo</label><input id="cEmail" type="email"></div>
+          <div><label>Notas (talla, preferencias…)</label><input id="cNotas"></div>
+        </div>
+        <div class="row"><button class="p" id="cGuardar" style="width:auto">Guardar</button><button class="s" id="cCancelar" type="button" style="margin-top:16px">Cancelar</button></div>
+        <div class="msg" id="mCli"></div>
+      </div>
+      <div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Mis clientas</h2><button class="p" id="cNueva" style="width:auto;margin:0">+ Nueva clienta</button></div>
+        <input id="cFiltro" placeholder="Buscar por nombre, teléfono o correo" style="margin:12px 0">
+        <div id="clientes"></div></div>
+    </div>
     <div id="tVentas">
       <div class="kpis"><div class="kpi"><small>Pedidos (31 días)</small><div id="kN">–</div></div><div class="kpi"><small>Total cobrado</small><div id="kT">–</div></div><div class="kpi"><small>Impuesto cobrado</small><div id="kI">–</div></div><div class="kpi"><small>Por enviar</small><div id="kP">–</div></div></div>
       <div class="card"><h2>Pedidos</h2><div id="ventas"></div></div>
@@ -85,8 +126,8 @@ textarea{width:100%;padding:10px 12px;border:1px solid var(--borde);border-radiu
         <input type="file" id="fFotos" accept="image/*" multiple>
         <div class="fotos" id="fPrev"></div>
         <div class="g2">
-          <div><label>Referencia</label><input id="fRef" placeholder="Ej. 11420"></div>
-          <div><label>Nombre que verá la clienta</label><input id="fNombre" placeholder="Ej. Faja Ref. 11420"></div>
+          <div><label>Referencia de fábrica</label><input id="fRef" placeholder="Ej. 11420"></div>
+          <div><label>Nombre que verá la clienta</label><input id="fNombre" placeholder="Ej. Faja Valentina"></div>
           <div><label>Categoría</label><select id="fCat"></select></div>
           <div><label>Precio (USD)</label><input id="fPrecio" type="number" min="1" step="0.01" placeholder="150"></div>
         </div>
@@ -169,8 +210,9 @@ $('salir').onclick = () => sb.auth.signOut();
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
   const t = b.dataset.t;
-  $('tVentas').classList.toggle('oculto', t !== 'ventas'); $('tStock').classList.toggle('oculto', t !== 'stock'); $('tReportes').classList.toggle('oculto', t !== 'reportes');
+  ['ventas','recibos','clientes','stock','reportes'].forEach(x => $('t' + x[0].toUpperCase() + x.slice(1)).classList.toggle('oculto', t !== x));
   if (t === 'ventas') cargarVentas(); if (t === 'stock') cargarStock();
+  if (t === 'recibos') cargarRecibos(); if (t === 'clientes') cargarClientes();
 });
 
 async function cargarVentas() {
@@ -207,7 +249,7 @@ async function cargarVentas() {
   });
 }
 
-const CATS = [['fajas-con-mangas','Fajas con mangas'],['fajas-largas','Fajas a la rodilla'],['fajas-cortas','Fajas cortas'],['strapless','Fajas strapless'],['cinturillas','Cinturillas'],['vestidos','Vestidos'],['ropa','Ropa'],['accesorios','Accesorios']];
+const CATS = [['fajas-con-mangas','Fajas con mangas'],['fajas-largas','Fajas a la rodilla'],['fajas-cortas','Fajas cortas'],['strapless','Fajas strapless'],['cinturillas','Cinturillas'],['brasieres','Brasieres'],['vestidos','Vestidos'],['ropa','Ropa'],['accesorios','Accesorios']];
 const TALLAS = ['XXS','XS','S','M','L','XL','XXL','3XL'];
 let CATALOGO = [], FOTOS = [], EDIT_ID = null;
 $('fCat').innerHTML = CATS.map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
@@ -225,8 +267,8 @@ function pintarFotos() {
 }
 function abrirForm(p) {
   EDIT_ID = p ? p.id : null; FOTOS = p ? (p.imagenes || []).slice() : [];
-  $('fTitulo').textContent = p ? 'Editar prenda' : 'Agregar prenda nueva';
-  $('fRef').value = p ? (p.sku || '').replace(/^REF-/i, '') : ''; $('fRef').disabled = !!p;
+  $('fTitulo').textContent = p ? 'Editar prenda · ' + (p.sku || '') : 'Agregar prenda nueva (el código BB se asigna solo)';
+  $('fRef').value = p ? String(p.id || '').replace(/^ref-/i, '') : ''; $('fRef').disabled = !!p;
   $('fNombre').value = p ? p.nombre : ''; $('fCat').value = p ? (p.categoria_web || 'fajas-largas') : 'fajas-largas';
   $('fPrecio').value = p ? (p.precio_cents / 100) : ''; $('fDesc').value = p ? (p.descripcion || '') : '';
   $('fActivo').checked = p ? p.activo : true;
@@ -292,7 +334,7 @@ async function cargarStock() {
     const total = p.variantes.reduce((s, v) => s + v.stock, 0);
     return `<div class="prod" data-id="${esc(p.id)}">
       ${p.imagenes && p.imagenes[0] ? `<img src="${esc(p.imagenes[0])}" alt="">` : '<div class="thumb">Foto de la web</div>'}
-      <div><div class="row" style="justify-content:space-between"><div><b>${esc(p.nombre)}</b> · ${usd(p.precio_cents)}<br>
+      <div><div class="row" style="justify-content:space-between"><div>${p.sku ? `<span class="tag">${esc(p.sku)}</span> ` : ''}<b>${esc(p.nombre)}</b> · ${usd(p.precio_cents)}<br>
         <small style="color:var(--gris)">${esc(catN[p.categoria_web] || p.categoria_web)} · ${total} piezas ${p.activo ? '' : '· <span class="agot">Oculta</span>'}</small></div>
         <button class="s bEditar">Editar / agregar tallas</button></div>
       <div class="vgrid">${p.variantes.sort((a, b) => a.color.localeCompare(b.color) || TALLAS.indexOf(a.talla) - TALLAS.indexOf(b.talla)).map(v => `<label>${esc(v.color)} · ${esc(v.talla)}<input type="number" min="0" value="${v.stock}" data-c="${esc(v.color)}" data-t="${esc(v.talla)}">${v.stock === 0 ? '<span class="agot">agotada</span>' : ''}</label>`).join('')}</div>
@@ -311,6 +353,132 @@ async function cargarStock() {
     };
   });
 }
+
+/* ---------- Caja: recibos de pago ---------- */
+let CLIENTES = [], RECIBOS = [], REC_EDIT = null, REC_CLI = null;
+const METODO_N = { efectivo: 'Efectivo', tarjeta: 'Tarjeta', zelle: 'Zelle', transferencia: 'Transferencia', otro: 'Otro' };
+function filaItem(d = '', c = 1, p = '') {
+  const el = document.createElement('div'); el.className = 'row'; el.style.marginTop = '6px';
+  el.innerHTML = `<input class="iD" placeholder="Descripción (ej. Faja Valentina BB-001 · M)" value="${esc(d)}" style="flex:3;min-width:180px">
+    <input class="iC" type="number" min="1" value="${c}" style="width:70px" title="Cantidad">
+    <input class="iP" type="number" min="0" step="0.01" placeholder="Precio" value="${p}" style="width:110px">
+    <button class="s" type="button">×</button>`;
+  el.querySelector('button').onclick = () => { el.remove(); totalRec(); };
+  el.querySelectorAll('input').forEach(i => i.oninput = totalRec);
+  $('rItems').appendChild(el); totalRec();
+}
+function itemsRec() { return [...$('rItems').children].map(f => ({ descripcion: f.querySelector('.iD').value.trim(), cantidad: +f.querySelector('.iC').value || 1, precio: +f.querySelector('.iP').value || 0 })).filter(i => i.descripcion && i.precio > 0); }
+function totalRec() { const s = itemsRec().reduce((a, i) => a + i.precio * i.cantidad, 0); $('rTotal').textContent = '$' + Math.max(0, s - (+$('rDesc').value || 0)).toFixed(2); }
+$('rDesc').oninput = totalRec;
+$('rMasItem').onclick = () => filaItem();
+async function llenarProductos() {
+  if (!CATALOGO.length) { const r = await api('?catalogo=1'); CATALOGO = await r.json(); }
+  $('rProd').innerHTML = '<option value="">+ Agregar prenda de mi inventario…</option>' + CATALOGO.filter(p => p.activo).map(p => `<option value="${esc(p.id)}">${esc((p.sku ? p.sku + ' · ' : '') + p.nombre)} — ${usd(p.precio_cents)}</option>`).join('');
+}
+$('rProd').onchange = () => { const p = CATALOGO.find(x => x.id === $('rProd').value); if (p) filaItem(`${p.nombre}${p.sku ? ' (' + p.sku + ')' : ''}`, 1, (p.precio_cents / 100).toFixed(2)); $('rProd').value = ''; };
+function limpiarRec() {
+  REC_EDIT = null; REC_CLI = null; ['rBuscar','rNombre','rTel','rEmail','rNotas'].forEach(i => $(i).value = ''); $('rDesc').value = 0; $('rMetodo').value = 'efectivo';
+  $('rItems').innerHTML = ''; filaItem(); $('rSug').innerHTML = ''; $('rEnviar').checked = true; $('rTitulo').textContent = 'Nuevo recibo de pago';
+  $('rCancelarEd').style.display = 'none'; $('mRec').className = 'msg';
+}
+$('rLimpiar').onclick = limpiarRec; $('rCancelarEd').onclick = limpiarRec;
+function ponerCliente(c) { REC_CLI = c.id || null; $('rNombre').value = c.nombre || ''; $('rTel').value = c.telefono || ''; $('rEmail').value = c.email || ''; $('rSug').innerHTML = ''; $('rBuscar').value = ''; }
+$('rBuscar').oninput = async () => {
+  const q = $('rBuscar').value.trim().toLowerCase(); if (q.length < 2) return $('rSug').innerHTML = '';
+  if (!CLIENTES.length) { const r = await api('?clientes=1'); CLIENTES = await r.json(); }
+  const hits = CLIENTES.filter(c => [c.nombre, c.telefono, c.email].join(' ').toLowerCase().includes(q)).slice(0, 6);
+  $('rSug').innerHTML = hits.map((c, i) => `<button class="s" type="button" data-i="${i}" style="margin:6px 6px 0 0">${esc(c.nombre || 'Sin nombre')} · ${esc(c.telefono || c.email || '')}</button>`).join('') || '<small style="color:var(--gris)">No está en la lista: escribe sus datos abajo y se guardará como clienta nueva.</small>';
+  $('rSug').querySelectorAll('button').forEach(b => b.onclick = () => ponerCliente(hits[+b.dataset.i]));
+};
+$('rGuardar').onclick = async () => {
+  const items = itemsRec();
+  if (!$('rNombre').value.trim()) return msg('mRec', 'Escribe el nombre de la clienta.');
+  if (!items.length) return msg('mRec', 'Agrega al menos un artículo con su precio.');
+  const enviar = $('rEnviar').checked && !!$('rEmail').value.trim();
+  const b = $('rGuardar'); b.disabled = true; msg('mRec', 'Guardando…', true);
+  const r = await api('', { method: 'POST', body: JSON.stringify({ accion: 'recibo', id: REC_EDIT, enviar, items, descuento: $('rDesc').value, metodo: $('rMetodo').value, notas: $('rNotas').value,
+    cliente: { id: REC_CLI, nombre: $('rNombre').value, telefono: $('rTel').value, email: $('rEmail').value } }) });
+  const d = await r.json(); b.disabled = false;
+  if (!r.ok) return msg('mRec', 'No se pudo guardar: ' + (d.error || r.status));
+  const env = !enviar ? ($('rEmail').value.trim() ? ' (no se envió por correo)' : ' (sin correo de la clienta)') : d.correo?.ok ? ' y se envió por correo a ' + d.recibo.cliente_email : ' pero el correo no salió: ' + (d.correo?.error || '');
+  msg('mRec', `Recibo ${d.recibo.numero} guardado${env}.`, !enviar || d.correo?.ok);
+  CLIENTES = []; imprimirRecibo(d.recibo, false); limpiarRec(); cargarRecibos();
+};
+function imprimirRecibo(r, auto = true) {
+  if (!auto) return;
+  const w = window.open('', '_blank', 'width=640,height=820'); if (!w) return alert('Permite las ventanas emergentes para imprimir.');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Recibo ${esc(r.numero)}</title><style>@media print{.np{display:none}}body{margin:0}</style></head><body>${r.html}<div class="np" style="text-align:center;margin:16px"><button onclick="print()" style="padding:10px 20px;font-size:16px">Imprimir</button></div></body></html>`);
+  w.document.close(); w.onload = () => setTimeout(() => w.print(), 300);
+}
+async function cargarRecibos() {
+  llenarProductos(); if (!$('rItems').children.length) filaItem();
+  $('recibos').innerHTML = '<div class="vacio">Cargando…</div>';
+  const r = await api('?recibos=1'); RECIBOS = await r.json(); pintarRecibos();
+}
+function pintarRecibos() {
+  const q = $('rFiltro').value.trim().toLowerCase();
+  const rs = RECIBOS.filter(r => !q || [r.numero, r.cliente_nombre, r.cliente_email, r.cliente_telefono].join(' ').toLowerCase().includes(q));
+  if (!rs.length) return $('recibos').innerHTML = '<div class="vacio">Todavía no hay recibos.</div>';
+  $('recibos').innerHTML = rs.map(r => `<div style="border-bottom:1px solid var(--borde);padding:10px 0" data-id="${r.id}">
+    <div class="row" style="justify-content:space-between"><div><b>${esc(r.numero)}</b> · ${new Date(r.creado).toLocaleString('es-US')} ${r.estado === 'anulado' ? '<span class="tag test">anulado</span>' : ''}<br>
+      ${esc(r.cliente_nombre)} · ${esc(r.cliente_telefono || '')} · ${esc(r.cliente_email || 'sin correo')}<br>
+      <small style="color:var(--gris)">${esc(METODO_N[r.metodo] || r.metodo)} · ${r.correo_enviado ? 'Correo enviado ✓' : r.correo_error ? 'Correo no enviado: ' + esc(r.correo_error).slice(0, 80) : 'Sin enviar'}</small></div>
+      <div style="text-align:right"><b>${usd(r.total_cents)}</b></div></div>
+    <div class="row" style="margin-top:6px"><button class="s bImp">Imprimir</button><button class="s bEnv">${r.correo_enviado ? 'Reenviar correo' : 'Enviar por correo'}</button><button class="s bEd">Editar</button>${r.estado !== 'anulado' ? '<button class="s bAn">Anular</button>' : ''}</div></div>`).join('');
+  $('recibos').querySelectorAll('[data-id]').forEach(el => {
+    const r = RECIBOS.find(x => x.id == el.dataset.id);
+    el.querySelector('.bImp').onclick = () => imprimirRecibo(r);
+    el.querySelector('.bEnv').onclick = async (ev) => { const b = ev.target; b.disabled = true; const x = await api('', { method: 'POST', body: JSON.stringify({ accion: 'recibo_enviar', id: r.id }) }); const d = await x.json(); b.disabled = false; b.textContent = x.ok ? 'Enviado ✓' : 'Error'; if (!x.ok) alert('No se envió: ' + d.error); else setTimeout(cargarRecibos, 1200); };
+    el.querySelector('.bEd').onclick = () => {
+      limpiarRec(); REC_EDIT = r.id; REC_CLI = r.cliente_id; $('rTitulo').textContent = 'Editar recibo ' + r.numero; $('rCancelarEd').style.display = '';
+      $('rNombre').value = r.cliente_nombre || ''; $('rTel').value = r.cliente_telefono || ''; $('rEmail').value = r.cliente_email || ''; $('rMetodo').value = r.metodo; $('rNotas').value = r.notas || '';
+      $('rDesc').value = (r.descuento_cents / 100).toFixed(2); $('rItems').innerHTML = ''; (r.items || []).forEach(i => filaItem(i.descripcion, i.cantidad, (i.precio_cents / 100).toFixed(2)));
+      $('rEnviar').checked = false; $('formRec').scrollIntoView({ behavior: 'smooth' });
+    };
+    const an = el.querySelector('.bAn'); if (an) an.onclick = async () => { if (!confirm('¿Anular el recibo ' + r.numero + '? Quedará marcado como anulado.')) return; await api('', { method: 'POST', body: JSON.stringify({ accion: 'recibo_anular', id: r.id }) }); cargarRecibos(); };
+  });
+}
+$('rFiltro').oninput = pintarRecibos;
+
+/* ---------- Clientes ---------- */
+let CLI_EDIT = null;
+async function cargarClientes() {
+  $('clientes').innerHTML = '<div class="vacio">Cargando…</div>';
+  const r = await api('?clientes=1'); CLIENTES = await r.json(); pintarClientes();
+}
+function pintarClientes() {
+  const q = $('cFiltro').value.trim().toLowerCase();
+  const cs = CLIENTES.filter(c => !q || [c.nombre, c.telefono, c.email].join(' ').toLowerCase().includes(q));
+  if (!cs.length) return $('clientes').innerHTML = '<div class="vacio">Todavía no hay clientas.</div>';
+  $('clientes').innerHTML = cs.map(c => `<div style="border-bottom:1px solid var(--borde);padding:12px 0" data-id="${c.id}">
+    <div class="row" style="justify-content:space-between"><div><b>${esc(c.nombre || 'Sin nombre')}</b><br>
+      <small>${c.telefono ? `<a class="link" style="margin:0" href="tel:${esc(c.telefono)}">${esc(c.telefono)}</a> · <a class="link" style="margin:0" target="_blank" href="https://wa.me/${esc(c.telefono.replace(/\D/g, ''))}">WhatsApp</a>` : 'Sin teléfono'} · ${c.email ? `<a class="link" style="margin:0" href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : 'sin correo'}</small>
+      ${c.notas ? `<br><small style="color:var(--gris)">${esc(c.notas)}</small>` : ''}</div>
+      <div style="text-align:right"><b>${usd(c.total_cents)}</b><br><small style="color:var(--gris)">${c.historial.length} compra(s)</small></div></div>
+    <details style="margin-top:6px"><summary style="cursor:pointer;font-size:13px;color:var(--rosa)">Ver historial</summary>
+      ${c.historial.length ? `<table style="margin-top:6px"><tr><th>Fecha</th><th>Tipo</th><th>Número</th><th>Total</th></tr>${c.historial.map(x => `<tr><td>${new Date(x.fecha).toLocaleDateString('es-US')}</td><td>${x.tipo === 'web' ? 'Tienda en línea' : 'Recibo caja · ' + esc(METODO_N[x.metodo] || '')}${x.prueba ? ' <span class="tag test">prueba</span>' : ''}</td><td>${esc(x.numero)} ${['anulado','reembolsado'].includes(x.estado) ? '<span class="tag test">' + esc(x.estado) + '</span>' : ''}</td><td>${usd(x.total_cents)}</td></tr>`).join('')}</table>` : '<div class="vacio" style="padding:10px">Sin compras todavía.</div>'}
+    </details>
+    <div class="row" style="margin-top:6px"><button class="s bRec">+ Hacer recibo</button><button class="s bEdC">Editar datos</button></div></div>`).join('');
+  $('clientes').querySelectorAll('[data-id]').forEach(el => {
+    const c = CLIENTES.find(x => x.id == el.dataset.id);
+    el.querySelector('.bEdC').onclick = () => abrirCli(c);
+    el.querySelector('.bRec').onclick = () => { document.querySelector('nav button[data-t="recibos"]').click(); setTimeout(() => { limpiarRec(); ponerCliente(c); }, 50); };
+  });
+}
+$('cFiltro').oninput = pintarClientes;
+function abrirCli(c) {
+  CLI_EDIT = c ? c.id : null; $('cTitulo').textContent = c ? 'Editar clienta' : 'Nueva clienta';
+  $('cNombre').value = c?.nombre || ''; $('cTel').value = c?.telefono || ''; $('cEmail').value = c?.email || ''; $('cNotas').value = c?.notas || '';
+  $('mCli').className = 'msg'; $('formCli').style.display = 'block'; $('formCli').scrollIntoView({ behavior: 'smooth' });
+}
+$('cNueva').onclick = () => abrirCli(null);
+$('cCancelar').onclick = () => $('formCli').style.display = 'none';
+$('cGuardar').onclick = async () => {
+  if (!$('cNombre').value.trim()) return msg('mCli', 'Escribe el nombre.');
+  const r = await api('', { method: 'POST', body: JSON.stringify({ accion: 'cliente', id: CLI_EDIT, nombre: $('cNombre').value, telefono: $('cTel').value, email: $('cEmail').value, notas: $('cNotas').value }) });
+  const d = await r.json(); if (!r.ok) return msg('mCli', 'No se pudo guardar: ' + d.error);
+  msg('mCli', 'Guardado.', true); setTimeout(() => $('formCli').style.display = 'none', 900); cargarClientes();
+};
 
 document.querySelectorAll('[data-rep]').forEach(b => b.onclick = async () => {
   const r = await api('?reporte=' + b.dataset.rep + '&formato=csv');
