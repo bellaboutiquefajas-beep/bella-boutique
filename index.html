@@ -445,7 +445,7 @@ function defaults(){
     colors:['Mocca'], sizes:T, compression:5, material:'[Pendiente] Composición según etiqueta del fabricante.', care:'[Pendiente] Instrucciones de lavado del fabricante.' }, o);
   return {
     settings: {
-      promoText: 'Envíos a todo USA · Tienda en Levittown, NY · Jue a Dom, 10 AM – 8 PM',
+      promoText: 'Envíos a todo USA · Atención todos los días, 24 horas · Entrega el mismo día o en 24 a 72 h',
       promoOn: true,
       heroTitle: 'Fajas y ropa <em>exclusiva</em>',
       heroText: 'Fajas colombianas de alta compresión para moldear cintura, abdomen, espalda y brazos. Envíos a todo Estados Unidos y tienda física en Levittown, NY.',
@@ -469,6 +469,7 @@ function defaults(){
       {slug:'cinturillas', name:'Cinturillas', on:true},
       {slug:'vestidos', name:'Vestidos', on:true},
       {slug:'ropa', name:'Ropa', on:true},
+      {slug:'brasieres', name:'Brasieres', on:true},
       {slug:'accesorios', name:'Accesorios', on:true}
     ],
     sizeTables: {
@@ -499,7 +500,7 @@ function defaults(){
     coupons: [ {code:'PRUEBA10', type:'percent', value:10, min:0, active:true, note:'Solo para probar el checkout. Desactivar antes de publicar.'} ],
     shipping: [
       {id:'us', name:'Envío a todo USA', cost:null, eta:'Por confirmar'},
-      {id:'pickup', name:'Retiro en tienda · Levittown, NY', cost:0, eta:'Jue a Dom, 10 AM – 8 PM'}
+      {id:'pickup', name:'Retiro en tienda · Levittown, NY', cost:0, eta:'Todos los días · 24 horas'}
     ],
     faqs: [
       {q:'¿Cómo sé cuál es mi talla?', a:'Usa la guía de tallas: ingresa tu cintura y cadera en centímetros y te sugerimos una talla según la tabla del fabricante. Si dudas entre dos tallas, escríbenos por WhatsApp al +1 (646) 239-6846.'},
@@ -571,6 +572,9 @@ if(applyStockReal(S) | applyFotos(S) | applyPrecios(S)) ls.set(KEY, S);
 (function(st){ try{ var c=false, set=st.settings||{}; if(set.hours!=='Todos los días · 24 horas'){ set.hours='Todos los días · 24 horas'; c=true; }
   var pol=set.policies||st.policies; if(pol&&pol.envios&&pol.envios.indexOf('24 a 72')<0){ pol.envios='Enviamos a todo Estados Unidos. Atendemos todos los días, las 24 horas. Dependiendo del lugar, tu pedido puede llegar el mismo día o dentro de 24 a 72 horas. También puedes recoger tu pedido en nuestra tienda de Levittown, NY.\n\n[Pendiente] Costos de envío y transportadora.'; c=true; }
   (st.faqs||set.faqs||[]).forEach(function(f){ if(f.q==='¿Hacen envíos?'&&f.a.indexOf('24 a 72')<0){ f.a='Sí, enviamos a todo Estados Unidos. Dependiendo del lugar, tu pedido puede llegar el mismo día o dentro de 24 a 72 horas.'; c=true; } if(f.q==='¿Tienen tienda física?'&&f.a.indexOf('24 horas')<0){ f.a='Sí, en Levittown, NY. Atendemos todos los días, las 24 horas.'; c=true; } });
+  if(set.promoText&&set.promoText.indexOf('Jue a Dom')>=0){ set.promoText='Envíos a todo USA · Atención todos los días, 24 horas · Entrega el mismo día o en 24 a 72 h'; c=true; }
+  (st.shipping||[]).forEach(function(z){ if(z.id==='pickup'&&z.eta!=='Todos los días · 24 horas'){ z.eta='Todos los días · 24 horas'; c=true; } });
+  if(st.categories&&!st.categories.some(function(x){return x.slug==='brasieres'})){ var ia=st.categories.findIndex(function(x){return x.slug==='accesorios'}); st.categories.splice(ia<0?st.categories.length:ia,0,{slug:'brasieres', name:'Brasieres', on:true}); c=true; }
   if(c) ls.set(KEY, st); }catch(e){} })(S);
 let CART = ls.get(CART_KEY, []);
 const save = () => { if(!ls.set(KEY, S)) toast('No se pudo guardar: el almacenamiento del navegador está lleno o bloqueado.'); };
