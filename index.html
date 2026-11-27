@@ -992,7 +992,7 @@ function viewCheckout(){
         <div class="field"><label for="cAddr">Dirección</label><input id="cAddr" type="text" required autocomplete="street-address"></div>
       </div>
       <div class="card-box"><h2 style="font-size:24px">Pago</h2>
-        ${[['card','Tarjeta de crédito o débito','Pago inmediato. El dinero llega a la cuenta bancaria de Bella Boutique.'],['transfer','Transferencia o Zelle','Te enviamos los datos por WhatsApp o correo. (Datos pendientes de configurar)'],['wa','Coordinar por WhatsApp','Una asesora confirma disponibilidad y forma de pago.']].map(([v,l,d])=>`<label class="pay-opt"><input type="radio" name="pay" value="${v}" ${CO.pay===v?'checked':''} onchange="CO.pay=this.value;refreshCO()"><span><b style="font-weight:500">${l}</b><br><span class="muted small">${d}</span></span></label>`).join('')}
+        ${[['card','Tarjeta de crédito o débito','Pago inmediato y seguro con Stripe.']].map(([v,l,d])=>`<label class="pay-opt"><input type="radio" name="pay" value="${v}" ${CO.pay===v?'checked':''} onchange="CO.pay=this.value;refreshCO()"><span><b style="font-weight:500">${l}</b><br><span class="muted small">${d}</span></span></label>`).join('')}
         <div id="cardBox" class="card-form" ${CO.pay==='card'?'':'hidden'}>
           <div class="row" style="align-items:center;flex-wrap:wrap"><div class="brands"><span>VISA</span><span>MASTERCARD</span><span>AMEX</span><span>DISCOVER</span></div><span class="secure">🔒 Pago cifrado por la pasarela</span></div>
           <div class="notice demo small"><b>Demostración: no escribas una tarjeta real.</b> Usa la tarjeta de prueba <b>4242 4242 4242 4242</b> (se aprueba) o <b>4000 0000 0000 0002</b> (el banco la rechaza), cualquier fecha futura y CVC 123.</div>
